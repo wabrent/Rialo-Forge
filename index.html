@@ -52,12 +52,23 @@
         
         @keyframes bgPulse {
             0%, 100% {
-                background-size: 100%;
-                transform: scale(1);
+                background-size: 100% 100%;
             }
             50% {
-                background-size: 120%;
-                transform: scale(1.05);
+                background-size: 120% 120%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+            }
+            body::after {
+                background-size: cover !important;
+                animation: none !important;
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
             }
         }
         
