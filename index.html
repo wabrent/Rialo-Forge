@@ -1173,7 +1173,6 @@
                         userAddress = result.address;
                         isConnected = true;
                         
-                        // Shorten address for display
                         const shortAddr = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
                         connectBtn.textContent = shortAddr;
                         connectBtn.classList.add('connected');
@@ -1181,18 +1180,7 @@
                         
                         updateWalletStats();
                     } catch (err) {
-                        connectBtn.textContent = 'Connect';
-                        connectBtn.style.opacity = '1';
-                        alert('Connection rejected. Please try again.');
-                    }
-                } else {
-                    // No wallet found - show prompt
-                    const userChoice = confirm('No Aptos wallet found. Install Petra Wallet?\n\nClick OK to go to petra.app, or Cancel to use demo mode.');
-                    
-                    if (userChoice) {
-                        window.open('https://petra.app', '_blank');
-                    } else {
-                        // Demo mode
+                        // Fall back to demo mode
                         connectBtn.textContent = 'Connecting...';
                         connectBtn.style.opacity = '0.7';
                         
@@ -1205,15 +1193,27 @@
                             connectBtn.style.opacity = '1';
                             
                             updateWalletStats();
-                        }, 1000);
+                        }, 800);
                     }
+                } else {
+                    // No wallet - use demo mode automatically
+                    connectBtn.textContent = 'Connecting...';
+                    connectBtn.style.opacity = '0.7';
+                    
+                    setTimeout(() => {
+                        userAddress = '0x' + Math.random().toString(16).slice(2, 10) + '...' + Math.random().toString(16).slice(2, 6);
+                        isConnected = true;
+                        
+                        connectBtn.textContent = userAddress;
+                        connectBtn.classList.add('connected');
+                        connectBtn.style.opacity = '1';
+                        
+                        updateWalletStats();
+                    }, 800);
                 }
             } else {
-                // Disconnect
                 if (window.aptos) {
-                    try {
-                        await window.aptos.disconnect();
-                    } catch (err) {}
+                    try { await window.aptos.disconnect(); } catch (err) {}
                 }
                 isConnected = false;
                 userAddress = null;
