@@ -1410,6 +1410,47 @@ const triggered = await client.getTriggeredTransactions(
                 <div id="reactive-result" style="margin-top: 0.5rem; font-size: 0.75rem; color: #30d158;"></div>
             </div>
         </div>
+        
+        <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; max-width: 980px; margin: 1rem auto 0;">
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Get Balance</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Query account balance</p>
+                <pre style="background: #1d1d1f; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.75rem;"><code>import { createRialoClient } from "@rialo/ts-cdk";
+
+const client = createRialoClient({...});
+const balance = await client.getBalance(pubkey);
+console.log("Balance:", balance); // in kelvins</code></pre>
+                <button class="btn-primary" onclick="getBalance()" style="margin-top: 0.5rem;">Get Balance</button>
+                <div id="balance-result" style="margin-top: 0.5rem; font-size: 0.75rem; color: #30d158;"></div>
+            </div>
+            
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Send Transaction</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Transfer RLO tokens</p>
+                <pre style="background: #1d1d1f; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.75rem;"><code>const tx = TransactionBuilder.create()
+  .setPayer(keypair.pubkey)
+  .setValidFrom(validFrom)
+  .addInstruction(transferInstruction(...))
+  .build();
+
+const sig = await client.sendTransaction(tx);</code></pre>
+                <button class="btn-primary" onclick="sendTransaction()" style="margin-top: 0.5rem;">Send TX</button>
+                <div id="tx-result" style="margin-top: 0.5rem; font-size: 0.75rem; color: #30d158;"></div>
+            </div>
+            
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Airdrop (Devnet)</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Get test tokens</p>
+                <pre style="background: #1d1d1f; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.75rem;"><code>// Request airdrop and wait for confirmation
+const result = await client.requestAirdropAndConfirm(
+  pubkey,
+  1_000_000_000n // 1 RLO in kelvins
+);
+console.log("Confirmed:", result.executed);</code></pre>
+                <button class="btn-primary" onclick="requestAirdrop()" style="margin-top: 0.5rem;">Request Airdrop</button>
+                <div id="airdrop-result" style="margin-top: 0.5rem; font-size: 0.75rem; color: #30d158;"></div>
+            </div>
+        </div>
     </section>
     
     <footer>
@@ -1626,6 +1667,45 @@ const triggered = await client.getTriggeredTransactions(
                 ];
                 resultDiv.innerHTML = `<strong>Active Subscriptions:</strong> 3<br>` + 
                     examples.map(e => `<span style="color: var(--text-secondary);">• ${e.trigger}: ${e.count} triggered</span>`).join('<br>');
+            } catch (err) {
+                resultDiv.textContent = 'Error: ' + err.message;
+            }
+        }
+        
+        async function getBalance() {
+            const resultDiv = document.getElementById('balance-result');
+            try {
+                resultDiv.innerHTML = '<span style="color: #f5f5f7;">Querying balance...</span>';
+                await new Promise(r => setTimeout(r, 600));
+                const balance = (Math.random() * 100).toFixed(4);
+                resultDiv.innerHTML = `<strong>Balance:</strong> ${balance} RLO<br><span style="color: var(--text-secondary);">${(balance * 1000000000).toFixed(0)} kelvins</span>`;
+            } catch (err) {
+                resultDiv.textContent = 'Error: ' + err.message;
+            }
+        }
+        
+        async function sendTransaction() {
+            const resultDiv = document.getElementById('tx-result');
+            try {
+                resultDiv.innerHTML = '<span style="color: #f5f5f7;">Building transaction...</span>';
+                await new Promise(r => setTimeout(r, 1000));
+                resultDiv.innerHTML = '<span style="color: #f5f5f7;">Signing...</span>';
+                await new Promise(r => setTimeout(r, 800));
+                const txHash = '0x' + Math.random().toString(16).slice(2, 66);
+                resultDiv.innerHTML = `<strong>Sent!</strong><br><span style="word-break: break-all; font-size: 0.65rem;">${txHash.slice(0, 20)}...</span>`;
+            } catch (err) {
+                resultDiv.textContent = 'Error: ' + err.message;
+            }
+        }
+        
+        async function requestAirdrop() {
+            const resultDiv = document.getElementById('airdrop-result');
+            try {
+                resultDiv.innerHTML = '<span style="color: #f5f5f7;">Requesting airdrop...</span>';
+                await new Promise(r => setTimeout(r, 1200));
+                resultDiv.innerHTML = '<span style="color: #f5f5f7;">Waiting for confirmation...</span>';
+                await new Promise(r => setTimeout(r, 800));
+                resultDiv.innerHTML = `<strong>Airdrop confirmed!</strong><br>1.0 RLO received<br><span style="color: var(--text-secondary);">Block: ${Math.floor(Math.random() * 1000000) + 5000000}</span>`;
             } catch (err) {
                 resultDiv.textContent = 'Error: ' + err.message;
             }
