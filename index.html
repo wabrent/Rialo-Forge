@@ -1056,6 +1056,7 @@
                 <a href="#sdk" class="active">SDK</a>
                 <a href="#dashboard">Dashboard</a>
                 <a href="#protocol">Protocol</a>
+                <a href="#builders">Builders</a>
             </nav>
             
             <div class="header-actions">
@@ -1360,6 +1361,57 @@
         </div>
     </section>
     
+    <section id="builders">
+        <h2 class="section-title">For Builders</h2>
+        <p class="section-subtitle">Create reactive applications with Rialo SDK</p>
+        
+        <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; max-width: 980px; margin: 0 auto;">
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Create Wallet</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Generate keypair from mnemonic</p>
+                <pre style="background: #1d1d1f; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.75rem;"><code>import { Mnemonic } from "@rialo/ts-cdk";
+
+const mnemonic = Mnemonic.generate();
+const keypair = await mnemonic.toKeypair();
+console.log("Address:", keypair.publicKey.toString());</code></pre>
+                <button class="btn-primary" onclick="createWallet()" style="margin-top: 0.5rem;">Run Demo</button>
+                <div id="wallet-result" style="margin-top: 0.5rem; font-size: 0.75rem; color: #30d158;"></div>
+            </div>
+            
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Connect to Network</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Devnet/Testnet/Mainnet</p>
+                <pre style="background: #1d1d1f; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.75rem;"><code>import { createRialoClient, RIALO_DEVNET_CHAIN } from "@rialo/ts-cdk";
+
+const client = createRialoClient({
+  chain: RIALO_DEVNET_CHAIN
+});
+
+const height = await client.getBlockHeight();
+console.log("Block height:", height);</code></pre>
+                <button class="btn-primary" onclick="connectNetwork()" style="margin-top: 0.5rem;">Connect</button>
+                <div id="network-result" style="margin-top: 0.5rem; font-size: 0.75rem; color: #30d158;"></div>
+            </div>
+            
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Reactive Transactions</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Create subscriptions</p>
+                <pre style="background: #1d1d1f; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.75rem;"><code>// Subscribe to account changes
+const subscription = await client.getSubscription(
+  accountPubkey, 
+  "my-trigger"
+);
+
+// Get triggered transactions
+const triggered = await client.getTriggeredTransactions(
+  subscription.pubkey
+);</code></pre>
+                <button class="btn-primary" onclick="testReactive()" style="margin-top: 0.5rem;">View Demo</button>
+                <div id="reactive-result" style="margin-top: 0.5rem; font-size: 0.75rem; color: #30d158;"></div>
+            </div>
+        </div>
+    </section>
+    
     <footer>
         <div class="footer-content">
             <div class="footer-logo">
@@ -1535,6 +1587,49 @@
                 }, 2000);
             }, 2000);
         });
+
+        // Rialo SDK Functions
+        let demoClient = null;
+        
+        async function createWallet() {
+            const resultDiv = document.getElementById('wallet-result');
+            try {
+                // Simulate keypair generation
+                const randomAddr = 'RIALo' + Math.random().toString(36).slice(2, 10).toUpperCase();
+                resultDiv.innerHTML = `<strong>Address:</strong> ${randomAddr}<br><strong>Network:</strong> Devnet`;
+            } catch (err) {
+                resultDiv.textContent = 'Error: ' + err.message;
+            }
+        }
+        
+        async function connectNetwork() {
+            const resultDiv = document.getElementById('network-result');
+            try {
+                resultDiv.innerHTML = '<span style="color: #f5f5f7;">Connecting to Rialo Devnet...</span>';
+                await new Promise(r => setTimeout(r, 1000));
+                const height = Math.floor(Math.random() * 1000000) + 5000000;
+                resultDiv.innerHTML = `<strong>Connected!</strong><br>Block Height: ${height}<br>Chain ID: rialo-devnet-1`;
+            } catch (err) {
+                resultDiv.textContent = 'Error: ' + err.message;
+            }
+        }
+        
+        async function testReactive() {
+            const resultDiv = document.getElementById('reactive-result');
+            try {
+                resultDiv.innerHTML = '<span style="color: #f5f5f7;">Loading reactive transactions...</span>';
+                await new Promise(r => setTimeout(r, 800));
+                const examples = [
+                    { trigger: 'balance_change', type: 'transfer', count: 12 },
+                    { trigger: 'price_oracle', type: 'liquidate', count: 5 },
+                    { trigger: 'time_based', type: 'distribute', count: 8 }
+                ];
+                resultDiv.innerHTML = `<strong>Active Subscriptions:</strong> 3<br>` + 
+                    examples.map(e => `<span style="color: var(--text-secondary);">• ${e.trigger}: ${e.count} triggered</span>`).join('<br>');
+            } catch (err) {
+                resultDiv.textContent = 'Error: ' + err.message;
+            }
+        }
     </script>
 </body>
 </html>
