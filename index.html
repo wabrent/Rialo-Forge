@@ -32,21 +32,32 @@
             font-weight: 400;
             letter-spacing: -0.022em;
             -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-image: url('deef.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-attachment: fixed;
-            min-height: 100vh;
+            z-index: -2;
             animation: bgPulse 8s ease-in-out infinite;
         }
         
         @keyframes bgPulse {
             0%, 100% {
-                background-size: cover;
+                background-size: 100%;
+                transform: scale(1);
             }
             50% {
                 background-size: 120%;
+                transform: scale(1.05);
             }
         }
         
@@ -1380,9 +1391,9 @@
         let isConnected = false;
         let userAddress = null;
         
-        // Check for Aptos/ Petra wallet
+        // Check for Rialo wallet
         function getWallet() {
-            return window.aptos || window.petra || null;
+            return window.rialo || window.sheep || null;
         }
         
         const connectBtn = document.querySelector('.btn-header');

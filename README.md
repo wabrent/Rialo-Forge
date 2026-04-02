@@ -37,7 +37,7 @@ Create and manage reactive transactions directly through our protocol interface 
 
 ### Prerequisites
 - Modern web browser
-- Rialo-compatible wallet (e.g., Petra)
+- Rialo-compatible wallet
 
 ### Installation
 
