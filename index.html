@@ -1380,82 +1380,92 @@
         let isConnected = false;
         let userAddress = null;
         
+        // Check for Aptos/ Petra wallet
+        function getWallet() {
+            return window.aptos || window.petra || null;
+        }
+        
         const connectBtn = document.querySelector('.btn-header');
         
         connectBtn.addEventListener('click', async () => {
             if (!isConnected) {
-                // Check if Petra or any Aptos wallet is available
-                if (window.aptos) {
+                const wallet = getWallet();
+                
+                if (wallet) {
                     try {
-                        connectBtn.textContent = 'Please confirm...';
+                        connectBtn.textContent = 'Connecting...';
                         connectBtn.style.opacity = '0.7';
                         
-                        const result = await window.aptos.connect();
-                        userAddress = result.address;
+                        // Try to connect
+                        await wallet.connect();
+                        
+                        const account = await wallet.account();
+                        userAddress = account.address;
                         isConnected = true;
                         
                         const shortAddr = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
                         connectBtn.textContent = shortAddr;
                         connectBtn.classList.add('connected');
                         connectBtn.style.opacity = '1';
+                        connectBtn.style.background = '#30d158';
+                        connectBtn.style.color = '#000';
                         
                         updateWalletStats();
                     } catch (err) {
-                        // Fall back to demo mode
-                        connectBtn.textContent = 'Connecting...';
-                        connectBtn.style.opacity = '0.7';
-                        
-                        setTimeout(() => {
-                            userAddress = '0x' + Math.random().toString(16).slice(2, 10) + '...' + Math.random().toString(16).slice(2, 6);
-                            isConnected = true;
-                            
-                            connectBtn.textContent = userAddress;
-                            connectBtn.classList.add('connected');
-                            connectBtn.style.opacity = '1';
-                            
-                            updateWalletStats();
-                        }, 800);
+                        // Connection failed, use demo mode
+                        console.log('Wallet connection failed, using demo mode');
+                        useDemoMode();
                     }
                 } else {
-                    // No wallet - use demo mode automatically
-                    connectBtn.textContent = 'Connecting...';
-                    connectBtn.style.opacity = '0.7';
-                    
-                    setTimeout(() => {
-                        userAddress = '0x' + Math.random().toString(16).slice(2, 10) + '...' + Math.random().toString(16).slice(2, 6);
-                        isConnected = true;
-                        
-                        connectBtn.textContent = userAddress;
-                        connectBtn.classList.add('connected');
-                        connectBtn.style.opacity = '1';
-                        
-                        updateWalletStats();
-                    }, 800);
+                    // No wallet found - use demo mode
+                    useDemoMode();
                 }
             } else {
-                if (window.aptos) {
-                    try { await window.aptos.disconnect(); } catch (err) {}
+                const wallet = getWallet();
+                if (wallet) {
+                    try { await wallet.disconnect(); } catch (err) {}
                 }
                 isConnected = false;
                 userAddress = null;
                 connectBtn.textContent = 'Connect';
                 connectBtn.classList.remove('connected');
+                connectBtn.style.background = '';
+                connectBtn.style.color = '';
             }
         });
         
-        // Check for Petra wallet on load
+        function useDemoMode() {
+            connectBtn.textContent = 'Connecting...';
+            connectBtn.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                userAddress = '0x' + Math.random().toString(16).slice(2, 10) + '...' + Math.random().toString(16).slice(2, 6);
+                isConnected = true;
+                
+                connectBtn.textContent = userAddress;
+                connectBtn.classList.add('connected');
+                connectBtn.style.opacity = '1';
+                connectBtn.style.background = '#30d158';
+                connectBtn.style.color = '#000';
+                
+                updateWalletStats();
+            }, 800);
+        }
+        
+        // Check for already connected wallet on load
         window.addEventListener('load', async () => {
-            if (window.aptos) {
-                // Check if already connected
+            const wallet = getWallet();
+            if (wallet) {
                 try {
-                    const account = await window.aptos.account();
+                    const account = await wallet.account();
                     if (account.address) {
                         userAddress = account.address;
                         isConnected = true;
                         const shortAddr = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
                         connectBtn.textContent = shortAddr;
                         connectBtn.classList.add('connected');
-                        updateWalletStats();
+                        connectBtn.style.background = '#30d158';
+                        connectBtn.style.color = '#000';
                     }
                 } catch (err) {}
             }
