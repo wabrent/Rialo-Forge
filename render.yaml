@@ -1,8 +1,6 @@
 services:
-  - type: static
+  - type: web
     name: rialo-forge
-    buildCommand: ""
-    publishDir: "."
-    routes:
-      - path: /
-        rewrite: /index.html
+    buildCommand: echo "Static site"
+    publishDir: .
+    runtime: static
