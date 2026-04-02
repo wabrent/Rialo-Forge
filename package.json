@@ -2,13 +2,13 @@
   "name": "rialo-forge",
   "version": "1.0.0",
   "description": "Rialo Forge - SDK, Dashboard & Protocol for Rialo blockchain",
-  "main": "index.html",
+  "main": "server.js",
   "scripts": {
-    "start": "npx serve .",
-    "build": "echo 'Static site - no build required'"
+    "start": "node server.js",
+    "build": "echo 'Static site'"
   },
   "keywords": ["rialo", "blockchain", "reactive-transactions", "sdk", "dashboard", "protocol"],
-  "author": "Rialo Forge Team",
+  "author": "@graanit2",
   "license": "MIT",
   "dependencies": {}
 }
