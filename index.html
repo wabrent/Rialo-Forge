@@ -1440,29 +1440,27 @@
         </div>
     </section>
     
-    <div id="logoGame" style="display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 50px; z-index: 500; cursor: pointer;">
+    <div id="logoGame" style="display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 50px; z-index: 500; background: rgba(0,0,0,0.3);">
         <canvas id="gameCanvas" style="width: 100%; height: 100%;"></canvas>
-        <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: white; font-size: 1rem; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;">Click to launch logo! Score: <span id="score">0</span></div>
+        <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: white; font-size: 1rem; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;">Click to restart - Double-click to exit</div>
     </div>
     
     <script>
         let gameRunning = false;
-        let score = 0;
-        let logoX, logoY, velX, velY;
-        const logoSize = 50;
+        let logoY = 0;
+        let velY = 0;
+        const logoSize = 60;
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        let logoX = 0;
         
         function startLogoGame() {
             document.getElementById('logoGame').style.display = 'block';
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
-            logoX = canvas.width / 2;
-            logoY = 100;
-            velX = (Math.random() - 0.5) * 8;
-            velY = 5;
-            score = 0;
-            document.getElementById('score').textContent = score;
+            logoX = canvas.width / 2 - logoSize / 2;
+            logoY = 0;
+            velY = 3;
             gameRunning = true;
             gameLoop();
         }
@@ -1472,24 +1470,12 @@
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            velY += 0.3;
-            logoX += velX;
+            velY += 0.2;
             logoY += velY;
             
-            if (logoX < 0 || logoX > canvas.width - logoSize) {
-                velX *= -0.8;
-                logoX = logoX < 0 ? 0 : canvas.width - logoSize;
-            }
-            
-            if (logoY > canvas.height - logoSize) {
-                logoY = canvas.height - logoSize;
-                velY *= -0.7;
-                velX *= 0.95;
-            }
-            
-            if (logoY < 0) {
+            if (logoY > canvas.height) {
                 logoY = 0;
-                velY *= -0.5;
+                velY = 3;
             }
             
             const img = new Image();
@@ -1499,17 +1485,9 @@
             requestAnimationFrame(gameLoop);
         }
         
-        canvas.addEventListener('click', function(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
-            
-            if (clickX > logoX && clickX < logoX + logoSize && clickY > logoY && clickY < logoY + logoSize) {
-                score++;
-                document.getElementById('score').textContent = score;
-                velY = -15;
-                velX = (Math.random() - 0.5) * 10;
-            }
+        canvas.addEventListener('click', function() {
+            logoY = 0;
+            velY = 3;
         });
         
         document.getElementById('logoGame').addEventListener('dblclick', function() {
