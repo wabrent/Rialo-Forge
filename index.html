@@ -1440,90 +1440,123 @@
         </div>
     </section>
     
-    <div id="logoGame" style="display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 50px; z-index: 500; background: rgba(0,0,0,0.3);">
+    <div id="logoGame" style="display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 50px; z-index: 500; background: rgba(0,0,0,0.8);">
         <canvas id="gameCanvas" style="width: 100%; height: 100%; cursor: none;"></canvas>
-        <div id="gameInfo" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: white; font-size: 1rem; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;">Catch the logo! Score: <span id="score">0</span> | Move mouse to control paddle</div>
     </div>
     
     <script>
         let gameRunning = false;
         let score = 0;
         let logoX, logoY, velX, velY;
-        let paddleX, paddleY;
-        const logoSize = 40;
-        const paddleWidth = 100;
-        const paddleHeight = 15;
+        const logoSize = 35;
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        let monsters = [];
+        let lastTime = 0;
+        let monsterSpawnRate = 2000;
+        let lastSpawn = 0;
         
         function startLogoGame() {
             document.getElementById('logoGame').style.display = 'block';
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
-            paddleX = canvas.width / 2 - paddleWidth / 2;
-            paddleY = canvas.height - 40;
-            logoX = Math.random() * (canvas.width - logoSize);
-            logoY = 0;
-            velX = (Math.random() - 0.5) * 4;
-            velY = 4;
+            logoX = canvas.width / 2;
+            logoY = canvas.height - 60;
+            velX = 5;
+            velY = -8;
             score = 0;
-            document.getElementById('score').textContent = score;
+            monsters = [];
             gameRunning = true;
-            gameLoop();
+            lastSpawn = 0;
+            requestAnimationFrame(gameLoop);
         }
         
-        function gameLoop() {
+        function gameLoop(timestamp) {
             if (!gameRunning) return;
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            logoY += velY;
-            logoX += velX;
-            
-            if (logoX < 0 || logoX > canvas.width - logoSize) {
-                velX *= -1;
-                logoX = Math.max(0, Math.min(logoX, canvas.width - logoSize));
-            }
-            
-            if (logoY > paddleY && logoY < paddleY + paddleHeight && 
-                logoX + logoSize > paddleX && logoX < paddleX + paddleWidth) {
-                score++;
-                document.getElementById('score').textContent = score;
-                velY = -Math.abs(velY) - 1;
-                velX = (Math.random() - 0.5) * 6;
-            }
-            
-            if (logoY > canvas.height) {
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
-                ctx.font = '40px Inter';
-                ctx.textAlign = 'center';
-                ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
-                ctx.font = '20px Inter';
-                ctx.fillText('Score: ' + score + ' - Click to restart', canvas.width/2, canvas.height/2 + 40);
-                gameRunning = false;
-                return;
-            }
-            
-            ctx.fillStyle = '#30d158';
-            ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
-            
+            // Draw logo
             const img = new Image();
             img.src = '9ed34883-70ce-4053-a540-64abb279686b.png';
             ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
             
+            // Move logo
+            logoX += velX;
+            logoY += velY;
+            
+            // Bounce walls
+            if (logoX < 0 || logoX > canvas.width - logoSize) velX *= -1;
+            if (logoY < 0) velY *= -1;
+            if (logoY > canvas.height) {
+                gameOver();
+                return;
+            }
+            
+            // Spawn monsters
+            if (timestamp - lastSpawn > monsterSpawnRate) {
+                monsters.push({
+                    x: Math.random() * (canvas.width - 40),
+                    y: -30,
+                    size: 30,
+                    speed: 1.5 + Math.random()
+                });
+                lastSpawn = timestamp;
+                monsterSpawnRate = Math.max(800, monsterSpawnRate - 50);
+            }
+            
+            // Draw and move monsters
+            ctx.fillStyle = '#ff4444';
+            for (let i = monsters.length - 1; i >= 0; i--) {
+                let m = monsters[i];
+                m.y += m.speed;
+                
+                // Draw monster face
+                ctx.fillRect(m.x, m.y, m.size, m.size);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(m.x + 5, m.y + 8, 6, 6);
+                ctx.fillRect(m.x + 19, m.y + 8, 6, 6);
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(m.x + 8, m.y + 20, 14, 4);
+                
+                // Collision with logo
+                if (logoX < m.x + m.size && logoX + logoSize > m.x &&
+                    logoY < m.y + m.size && logoY + logoSize > m.y) {
+                    score += 10;
+                    monsters.splice(i, 1);
+                    velY = -Math.abs(velY) - 1;
+                    velX = (Math.random() - 0.5) * 10;
+                }
+                
+                // Remove if off screen
+                if (m.y > canvas.height) {
+                    monsters.splice(i, 1);
+                }
+            }
+            
+            // Draw score
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText('Score: ' + score, 20, 30);
+            
             requestAnimationFrame(gameLoop);
         }
         
-        canvas.addEventListener('mousemove', function(e) {
-            const rect = canvas.getBoundingClientRect();
-            paddleX = e.clientX - rect.left - paddleWidth / 2;
-            paddleX = Math.max(0, Math.min(paddleX, canvas.width - paddleWidth));
-        });
+        function gameOver() {
+            gameRunning = false;
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.font = '40px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
+            ctx.font = '20px Inter';
+            ctx.fillText('Score: ' + score + ' - Click to restart', canvas.width/2, canvas.height/2 + 30);
+        }
         
         canvas.addEventListener('click', function() {
-            if (!gameRunning) {
-                startLogoGame();
-            }
+            if (!gameRunning) startLogoGame();
         });
         
         document.getElementById('logoGame').addEventListener('dblclick', function() {
