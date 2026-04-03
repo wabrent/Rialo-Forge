@@ -1068,6 +1068,10 @@
                 <a href="#dashboard">Dashboard</a>
                 <a href="#protocol">Protocol</a>
                 <a href="#builders">Builders</a>
+                <a href="#" onclick="startLogoGame(); return false;" style="display: flex; align-items: center; gap: 4px;">
+                    <span style="display: inline-block; width: 6px; height: 6px; background: #30d158; border-radius: 50%; box-shadow: 0 0 8px #30d158, 0 0 12px #30d158;"></span>
+                    Play
+                </a>
             </nav>
             
             <div class="header-actions">
@@ -1435,6 +1439,84 @@
             </a>
         </div>
     </section>
+    
+    <div id="logoGame" style="display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 50px; z-index: 500; cursor: pointer;">
+        <canvas id="gameCanvas" style="width: 100%; height: 100%;"></canvas>
+        <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: white; font-size: 1rem; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;">Click to launch logo! Score: <span id="score">0</span></div>
+    </div>
+    
+    <script>
+        let gameRunning = false;
+        let score = 0;
+        let logoX, logoY, velX, velY;
+        const logoSize = 50;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function startLogoGame() {
+            document.getElementById('logoGame').style.display = 'block';
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            logoX = canvas.width / 2;
+            logoY = 100;
+            velX = (Math.random() - 0.5) * 8;
+            velY = 5;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            gameRunning = true;
+            gameLoop();
+        }
+        
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            velY += 0.3;
+            logoX += velX;
+            logoY += velY;
+            
+            if (logoX < 0 || logoX > canvas.width - logoSize) {
+                velX *= -0.8;
+                logoX = logoX < 0 ? 0 : canvas.width - logoSize;
+            }
+            
+            if (logoY > canvas.height - logoSize) {
+                logoY = canvas.height - logoSize;
+                velY *= -0.7;
+                velX *= 0.95;
+            }
+            
+            if (logoY < 0) {
+                logoY = 0;
+                velY *= -0.5;
+            }
+            
+            const img = new Image();
+            img.src = '9ed34883-70ce-4053-a540-64abb279686b.png';
+            ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        canvas.addEventListener('click', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            if (clickX > logoX && clickX < logoX + logoSize && clickY > logoY && clickY < logoY + logoSize) {
+                score++;
+                document.getElementById('score').textContent = score;
+                velY = -15;
+                velX = (Math.random() - 0.5) * 10;
+            }
+        });
+        
+        document.getElementById('logoGame').addEventListener('dblclick', function() {
+            gameRunning = false;
+            document.getElementById('logoGame').style.display = 'none';
+        });
+    </script>
     
     <footer>
         <div class="footer-content">
