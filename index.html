@@ -1448,7 +1448,10 @@
         let gameRunning = false;
         let score = 0;
         let logoX, logoY, velX, velY;
+        let paddleX;
         const logoSize = 35;
+        const paddleWidth = 100;
+        const paddleHeight = 12;
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let monsters = [];
@@ -1460,10 +1463,11 @@
             document.getElementById('logoGame').style.display = 'block';
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
+            paddleX = canvas.width / 2 - paddleWidth / 2;
             logoX = canvas.width / 2;
-            logoY = canvas.height - 60;
-            velX = 5;
-            velY = -8;
+            logoY = canvas.height - 100;
+            velX = 4;
+            velY = -6;
             score = 0;
             monsters = [];
             gameRunning = true;
@@ -1475,6 +1479,8 @@
             if (!gameRunning) return;
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const paddleY = canvas.height - 30;
             
             // Draw logo
             const img = new Image();
@@ -1488,6 +1494,16 @@
             // Bounce walls
             if (logoX < 0 || logoX > canvas.width - logoSize) velX *= -1;
             if (logoY < 0) velY *= -1;
+            
+            // Bounce paddle
+            if (logoY + logoSize > paddleY && logoY < paddleY + paddleHeight &&
+                logoX + logoSize > paddleX && logoX < paddleX + paddleWidth) {
+                velY = -Math.abs(velY) - 1;
+                velX += (Math.random() - 0.5) * 2;
+                score++;
+            }
+            
+            // Game over if logo falls below
             if (logoY > canvas.height) {
                 gameOver();
                 return;
@@ -1502,8 +1518,12 @@
                     speed: 1.5 + Math.random()
                 });
                 lastSpawn = timestamp;
-                monsterSpawnRate = Math.max(800, monsterSpawnRate - 50);
+                monsterSpawnRate = Math.max(800, monsterSpawnRate - 30);
             }
+            
+            // Draw paddle
+            ctx.fillStyle = '#30d158';
+            ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
             
             // Draw and move monsters
             ctx.fillStyle = '#ff4444';
@@ -1512,6 +1532,7 @@
                 m.y += m.speed;
                 
                 // Draw monster face
+                ctx.fillStyle = '#ff4444';
                 ctx.fillRect(m.x, m.y, m.size, m.size);
                 ctx.fillStyle = 'white';
                 ctx.fillRect(m.x + 5, m.y + 8, 6, 6);
@@ -1524,8 +1545,7 @@
                     logoY < m.y + m.size && logoY + logoSize > m.y) {
                     score += 10;
                     monsters.splice(i, 1);
-                    velY = -Math.abs(velY) - 1;
-                    velX = (Math.random() - 0.5) * 10;
+                    velY = -Math.abs(velY) - 2;
                 }
                 
                 // Remove if off screen
@@ -1554,6 +1574,12 @@
             ctx.font = '20px Inter';
             ctx.fillText('Score: ' + score + ' - Click to restart', canvas.width/2, canvas.height/2 + 30);
         }
+        
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            paddleX = e.clientX - rect.left - paddleWidth / 2;
+            paddleX = Math.max(0, Math.min(paddleX, canvas.width - paddleWidth));
+        });
         
         canvas.addEventListener('click', function() {
             if (!gameRunning) startLogoGame();
